@@ -18,14 +18,18 @@ find_package(CUDAToolkit REQUIRED)
 add_library(project_warnings INTERFACE)
 
 if(MSVC)
-    target_compile_options(project_warnings INTERFACE /permissive- /W4)
+    target_compile_options(project_warnings
+        INTERFACE
+            $<$<COMPILE_LANGUAGE:CXX>:/permissive->
+            $<$<COMPILE_LANGUAGE:CXX>:/W4>
+    )
 else()
     target_compile_options(project_warnings INTERFACE -Wall -Wextra -Wpedantic)
 endif()
 
 target_compile_options(project_warnings
     INTERFACE
-        $<$<COMPILE_LANGUAGE:CUDA>:--extended-lambda>
+        $<$<COMPILE_LANGUAGE:CUDA>:--expt-extended-lambda>
 )
 
 add_library(addvectors STATIC
