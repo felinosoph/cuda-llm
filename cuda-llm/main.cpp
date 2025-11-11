@@ -3,9 +3,8 @@
 #include "cuda_runtime.h"
 #include <iostream>
 
-
-int main()
-{
+bool test_vector_add() {
+    std::cout << "Running test: test_vector_add... ";
     int N = 1024;
     float* h_A, * h_B, * h_C;
     h_A = new float[N];
@@ -36,17 +35,25 @@ int main()
     for (int i = 0; i < N; ++i)
     {
         if (h_C[i] != i + 2.0 * i) {
-            std::cerr << "Failed!" << "\n";
+            std::cerr << "FAILED at index " << i << "!" << std::endl;
             return 1;
         };
 
     }
-    std::cout << "Success!!" << "\n";
-
 
     checkCudaErrors(cudaFree(d_A));
     checkCudaErrors(cudaFree(d_B));
     checkCudaErrors(cudaFree(d_C));
     delete[] h_A; delete[] h_B; delete[] h_C;
+    std::cout << "PASSED." << std::endl;
+    return true;
+}
+
+int main()
+{
+    if (!test_vector_add()) {
+        return 1;
+    }
+
     return 0;
 }
