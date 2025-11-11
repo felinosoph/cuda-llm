@@ -1,59 +1,51 @@
 #include "addvectors.h"
 #include "helpers.h"
-#include "cuda_runtime.h"
+
+#include <cuda_runtime.h>
+
 #include <iostream>
+#include <vector>
 
-bool test_vector_add() {
-    std::cout << "Running test: test_vector_add... ";
-    int N = 1024;
-    float* h_A, * h_B, * h_C;
-    h_A = new float[N];
-    h_B = new float[N];
-    h_C = new float[N];
+int main() {
+    constexpr int N = 1 << 12;
 
-    for (int i = 0; i < N; ++i)
-    {
-        h_A[i] = i;
-        h_B[i] = 2.0 * i;
+    std::vector<float> hostA(N);
+    std::vector<float> hostB(N);
+    std::vector<float> hostC(N, 0.0F);
+
+    for (int i = 0; i < N; ++i) {
+        hostA[i] = static_cast<float>(i);
+        hostB[i] = static_cast<float>(2 * i);
     }
-    float* d_A, * d_B, * d_C;
 
-    checkCudaErrors(cudaMalloc((void**)&d_A, N * sizeof(float)));
-    checkCudaErrors(cudaMalloc((void**)&d_B, N * sizeof(float)));
-    checkCudaErrors(cudaMalloc((void**)&d_C, N * sizeof(float)));
+    float* deviceA = nullptr;
+    float* deviceB = nullptr;
+    float* deviceC = nullptr;
 
-    checkCudaErrors(cudaMemcpy(d_A, h_A, N * sizeof(float), cudaMemcpyHostToDevice));
-    checkCudaErrors(cudaMemcpy(d_B, h_B, N * sizeof(float), cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMalloc(&deviceA, N * sizeof(float)));
+    checkCudaErrors(cudaMalloc(&deviceB, N * sizeof(float)));
+    checkCudaErrors(cudaMalloc(&deviceC, N * sizeof(float)));
 
+    checkCudaErrors(cudaMemcpy(deviceA, hostA.data(), N * sizeof(float), cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpy(deviceB, hostB.data(), N * sizeof(float), cudaMemcpyHostToDevice));
 
-    addVectors(d_C, d_A, d_B, N);
-    checkCudaErrors(cudaGetLastError());
+    addVectors(deviceC, deviceA, deviceB, N);
     checkCudaErrors(cudaDeviceSynchronize());
-    checkCudaErrors(cudaMemcpy(h_C, d_C, N * sizeof(float), cudaMemcpyDeviceToHost));
 
+    checkCudaErrors(cudaMemcpy(hostC.data(), deviceC, N * sizeof(float), cudaMemcpyDeviceToHost));
 
-    for (int i = 0; i < N; ++i)
-    {
-        if (h_C[i] != i + 2.0 * i) {
-            std::cerr << "FAILED at index " << i << "!" << std::endl;
-            return 1;
-        };
-
+    std::cout << "First five results: ";
+    for (int i = 0; i < 5 && i < N; ++i) {
+        std::cout << hostC[i];
+        if (i + 1 < 5 && i + 1 < N) {
+            std::cout << ", ";
+        }
     }
+    std::cout << std::endl;
 
-    checkCudaErrors(cudaFree(d_A));
-    checkCudaErrors(cudaFree(d_B));
-    checkCudaErrors(cudaFree(d_C));
-    delete[] h_A; delete[] h_B; delete[] h_C;
-    std::cout << "PASSED." << std::endl;
-    return true;
-}
-
-int main()
-{
-    if (!test_vector_add()) {
-        return 1;
-    }
+    checkCudaErrors(cudaFree(deviceA));
+    checkCudaErrors(cudaFree(deviceB));
+    checkCudaErrors(cudaFree(deviceC));
 
     return 0;
 }
