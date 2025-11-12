@@ -34,6 +34,7 @@ target_compile_options(project_warnings
 
 add_library(addvectors STATIC
     cuda-llm/addvectors.cu
+    cuda-llm/reduction.cu
 )
 
 set_target_properties(addvectors PROPERTIES
@@ -81,6 +82,7 @@ enable_testing()
 
 add_executable(addvectors_tests
     tests/test_addvectors.cu
+    tests/test_reduction.cu
 )
 
 set_target_properties(addvectors_tests PROPERTIES

@@ -1,0 +1,1 @@
+void launch_sum_reduction(float* d_result, const float* d_data, int N);
