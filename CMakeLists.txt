@@ -32,22 +32,23 @@ target_compile_options(project_warnings
         $<$<COMPILE_LANGUAGE:CUDA>:--expt-extended-lambda>
 )
 
-add_library(addvectors STATIC
+add_library(kernels STATIC
     cuda-llm/addvectors.cu
     cuda-llm/reduction.cu
+    cuda-llm/gemm_naive.cu
 )
 
-set_target_properties(addvectors PROPERTIES
+set_target_properties(kernels PROPERTIES
     CUDA_SEPARABLE_COMPILATION ON
     POSITION_INDEPENDENT_CODE ON
 )
 
-target_include_directories(addvectors
+target_include_directories(kernels
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/cuda-llm
 )
 
-target_link_libraries(addvectors
+target_link_libraries(kernels
     PUBLIC
         CUDA::cudart
         project_warnings
@@ -55,11 +56,11 @@ target_link_libraries(addvectors
 
 add_executable(cuda_llm_app
     cuda-llm/main.cpp
-)
+ )
 
 target_link_libraries(cuda_llm_app
     PRIVATE
-        addvectors
+        kernels
         project_warnings
 )
 
@@ -80,28 +81,29 @@ FetchContent_MakeAvailable(eigen)
 
 enable_testing()
 
-add_executable(addvectors_tests
+add_executable(kernels_tests
     tests/test_addvectors.cu
     tests/test_reduction.cu
-)
+    tests/test_gemm_naive.cu
+ )
 
-set_target_properties(addvectors_tests PROPERTIES
+set_target_properties(kernels_tests PROPERTIES
     CUDA_SEPARABLE_COMPILATION ON
 )
 
-target_link_libraries(addvectors_tests
+target_link_libraries(kernels_tests
     PRIVATE
-        addvectors
+        kernels
         GTest::gtest_main
         Eigen3::Eigen
         project_warnings
 )
 
-target_include_directories(addvectors_tests
+target_include_directories(kernels_tests
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/cuda-llm
 )
 
 include(GoogleTest)
 
-gtest_discover_tests(addvectors_tests)
+gtest_discover_tests(kernels_tests)
