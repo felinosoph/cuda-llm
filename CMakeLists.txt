@@ -36,6 +36,7 @@ add_library(kernels STATIC
     cuda-llm/addvectors.cu
     cuda-llm/reduction.cu
     cuda-llm/gemm_naive.cu
+    cuda-llm/gemm.cu
 )
 
 set_target_properties(kernels PROPERTIES
@@ -70,21 +71,23 @@ FetchContent_Declare(
     googletest
     URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip
 )
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+
 FetchContent_MakeAvailable(googletest)
 
 FetchContent_Declare(
     eigen
     URL https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.gz
 )
+
 FetchContent_MakeAvailable(eigen)
+
 
 enable_testing()
 
 add_executable(kernels_tests
     tests/test_addvectors.cu
     tests/test_reduction.cu
-    tests/test_gemm_naive.cu
+    tests/test_gemm.cu 
  )
 
 set_target_properties(kernels_tests PROPERTIES
